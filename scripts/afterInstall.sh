@@ -1,7 +1,7 @@
 docker pull dlfdyd96/spring-cicd:latest
-docker run --publish 8081:8080 \
+docker run --publish 8080:8080 \
     -it --detach \
-    --name spring-cicd-test dlfdyd96/spring-cicd-test:latest /bin/bash
+    --name spring-cicd dlfdyd96/spring-cicd:latest /bin/bash
 
 # DockerHub에 있는 Image를 pull하여 EC2 instance로 가져옵니다.
 # 받아온 Image를 Docker Container에 띄워서 가동시킵니다.

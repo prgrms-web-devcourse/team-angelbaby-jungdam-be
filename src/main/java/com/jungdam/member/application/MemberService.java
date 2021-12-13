@@ -3,8 +3,8 @@ package com.jungdam.member.application;
 import com.jungdam.error.ErrorMessage;
 import com.jungdam.error.exception.NotExistException;
 import com.jungdam.member.domain.Member;
-import com.jungdam.member.dto.MemberBundle.MemberReadBundle;
-import com.jungdam.member.dto.MemberResponse;
+import com.jungdam.member.dto.bundle.ReadMemberBundle;
+import com.jungdam.member.dto.response.ReadMemberResponse;
 import com.jungdam.member.infrastructure.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +19,22 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MemberResponse.MemberReadResponse find(MemberReadBundle bundle) {
-        Member member = memberRepository.findByEmail(bundle.getEmail())
-            .orElseThrow(() -> {
-                throw new NotExistException(ErrorMessage.NOT_EXIST_MEMBER);
-            });
-
-        return new MemberResponse.MemberReadResponse(
+    public ReadMemberResponse find(ReadMemberBundle bundle) {
+        Member member = findById(bundle.getMemberId());
+        
+        return new ReadMemberResponse(
             member.getEmail(),
             member.getNickname(),
             member.getAvatar(),
             member.getRole()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Member findById(Long id) {
+        return memberRepository.findById(id)
+            .orElseThrow(() -> {
+                throw new NotExistException(ErrorMessage.NOT_EXIST_MEMBER);
+            });
     }
 }

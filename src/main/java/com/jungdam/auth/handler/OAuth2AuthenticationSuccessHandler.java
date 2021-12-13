@@ -8,19 +8,20 @@ import com.jungdam.auth.oauth2.OAuth2MemberInfo;
 import com.jungdam.auth.oauth2.OAuth2MemberInfoFactory;
 import com.jungdam.auth.token.AuthToken;
 import com.jungdam.auth.token.AuthTokenProvider;
-import com.jungdam.common.config.AuthProperties;
+import com.jungdam.common.properties.AuthProperties;
 import com.jungdam.common.utils.CookieUtil;
+import com.jungdam.member.domain.Member;
 import com.jungdam.member.domain.MemberRefreshToken;
 import com.jungdam.member.domain.vo.ProviderType;
 import com.jungdam.member.domain.vo.Role;
 import com.jungdam.member.infrastructure.MemberRefreshTokenRepository;
+import com.jungdam.member.infrastructure.MemberRepository;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,20 +43,23 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final AuthProperties authProperties;
     private final MemberRefreshTokenRepository memberRefreshTokenRepository;
     private final OAuth2AuthorizationRequestBasedOnCookieRepository authorizationRequestRepository;
+    private final MemberRepository memberRepository;
 
     public OAuth2AuthenticationSuccessHandler(final AuthTokenProvider tokenProvider,
         final AuthProperties authProperties,
         final MemberRefreshTokenRepository memberRefreshTokenRepository,
-        final OAuth2AuthorizationRequestBasedOnCookieRepository authorizationRequestRepository) {
+        final OAuth2AuthorizationRequestBasedOnCookieRepository authorizationRequestRepository,
+        final MemberRepository memberRepository) {
         this.tokenProvider = tokenProvider;
         this.authProperties = authProperties;
         this.memberRefreshTokenRepository = memberRefreshTokenRepository;
         this.authorizationRequestRepository = authorizationRequestRepository;
+        this.memberRepository = memberRepository;
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication) throws IOException, ServletException {
+        Authentication authentication) throws IOException {
         String targetUrl = determineTargetUrl(request, response, authentication);
 
         if (response.isCommitted()) {
@@ -69,6 +73,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) {
+
         Optional<String> redirectUri = CookieUtil.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
             .map(Cookie::getValue);
 
@@ -81,7 +86,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
         ProviderType providerType = ProviderType.valueOf(
-            authToken.getAuthorizedClientRegistrationId().toUpperCase());
+            authToken.getAuthorizedClientRegistrationId().toUpperCase()
+        );
 
         OidcUser oidcUser = ((OidcUser) authentication.getPrincipal());
         OAuth2MemberInfo oAuth2MemberInfo = OAuth2MemberInfoFactory.of(
@@ -89,12 +95,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             oidcUser.getAttributes());
         Collection<? extends GrantedAuthority> authorities = ((OidcUser) authentication.getPrincipal()).getAuthorities();
 
-        Role role =
-            hasAuthority(authorities, Role.ADMIN.getRole()) ? Role.ADMIN : Role.USER;
+        Role role = hasAuthority(authorities, Role.ADMIN.getRole()) ? Role.ADMIN : Role.USER;
 
         Date now = new Date();
+
+        Member member = memberRepository.findByOauthPermission(
+            oAuth2MemberInfo.getOauthPermission());
+
         AuthToken accessToken = tokenProvider.createAuthToken(
-            oAuth2MemberInfo.getEmail(),
+            String.valueOf(member.getId()),
             role.getRole(),
             new Date(now.getTime() + authProperties.getOauth().getTokenExpiry())
         );
@@ -109,21 +118,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByOauthPermission(
             oAuth2MemberInfo.getOauthPermission());
         if (!Objects.isNull(memberRefreshToken)) {
-            memberRefreshToken.setRefreshToken(refreshToken.getToken());
+            memberRefreshToken.updateRefreshToken(refreshToken.getToken());
         } else {
-            memberRefreshToken = new MemberRefreshToken(oAuth2MemberInfo.getOauthPermission(),
-                refreshToken.getToken());
+            memberRefreshToken = new MemberRefreshToken(
+                oAuth2MemberInfo.getOauthPermission(),
+                refreshToken.getToken()
+            );
             memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
         }
 
-        int cookieMaxAge = (int) refreshTokenExpiry / REFRESH_TOKEN_EXPIRY_SECONDS;
+        int cookieMaxAge = calculateRefreshTokenExpiry((int) refreshTokenExpiry);
 
-        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-        CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
+        updateCookie(request, response, refreshToken, cookieMaxAge);
 
         return UriComponentsBuilder.fromUriString(targetUrl)
-            .queryParam(QUERY_PARAM_FOR_TOKEN, accessToken.getToken())
-            .build().toUriString();
+            .queryParam(
+                QUERY_PARAM_FOR_TOKEN,
+                accessToken.getToken()
+            )
+            .build()
+            .toUriString();
+    }
+
+    private int calculateRefreshTokenExpiry(int refreshTokenExpiry) {
+        return refreshTokenExpiry / REFRESH_TOKEN_EXPIRY_SECONDS;
+    }
+
+    private void updateCookie(HttpServletRequest request, HttpServletResponse response,
+        AuthToken refreshToken, int cookieMaxAge) {
+        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
+        CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request,
@@ -152,7 +176,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         return authProperties.getOauth2().getAuthorizedRedirectUris()
             .stream()
             .anyMatch(authorizedRedirectUri -> {
-                // Only validate host and port. Let the clients use different paths if they want to
                 URI authorizedURI = URI.create(authorizedRedirectUri);
                 if (authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
                     && authorizedURI.getPort() == clientRedirectUri.getPort()) {

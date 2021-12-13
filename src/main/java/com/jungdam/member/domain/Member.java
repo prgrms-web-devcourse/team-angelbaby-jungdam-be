@@ -5,11 +5,9 @@ import com.jungdam.common.domain.BaseEntity;
 import com.jungdam.member.domain.vo.Avatar;
 import com.jungdam.member.domain.vo.Email;
 import com.jungdam.member.domain.vo.Nickname;
-import com.jungdam.member.domain.vo.Password;
 import com.jungdam.member.domain.vo.ProviderType;
 import com.jungdam.member.domain.vo.Role;
 import com.jungdam.member.domain.vo.Status;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -45,9 +43,6 @@ public class Member extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private Status status;
 
-    @Embedded
-    private Password password;
-
     @Column(name = "member_provider_type")
     @Enumerated(EnumType.STRING)
     private ProviderType providerType;
@@ -60,20 +55,23 @@ public class Member extends BaseEntity {
     }
 
     public Member(
-        String userId,
-        String username,
+        String oauthPermission,
+        String nickname,
         String email,
         String avatar,
         ProviderType providerType
     ) {
-        this.oauthPermission = userId;
-        this.nickname = new Nickname(username);
-        this.password = new Password("NO_PASS");
-        this.email = Objects.isNull(email) ? new Email("NO_EMAIL") : new Email(email);
-        this.avatar = Objects.isNull(avatar) ? new Avatar("NO_AVATAR") : new Avatar(avatar);
+        this.oauthPermission = oauthPermission;
+        this.nickname = new Nickname(nickname);
+        this.email = new Email(email);
+        this.avatar = new Avatar(avatar);
         this.providerType = providerType;
         this.role = Role.USER;
         this.status = Status.FREE;
+    }
+
+    public static Member.MemberBuilder builder() {
+        return new Member.MemberBuilder();
     }
 
     public void updateNickname(String nickname) {
@@ -88,15 +86,9 @@ public class Member extends BaseEntity {
         return nickname.getNickname();
     }
 
-
-    public String getPassword() {
-        return password.getPassword();
-    }
-
     public String getAvatar() {
         return avatar.getAvatar();
     }
-
 
     public ProviderType getProviderType() {
         return providerType;
@@ -116,5 +108,47 @@ public class Member extends BaseEntity {
 
     public String getOauthPermission() {
         return oauthPermission;
+    }
+
+    public static class MemberBuilder {
+
+        private String oauthPermission;
+        private String nickname;
+        private String email;
+        private String avatar;
+        private ProviderType providerType;
+
+        private MemberBuilder() {
+        }
+
+        public Member.MemberBuilder oauthPermission(final String oauthPermission) {
+            this.oauthPermission = oauthPermission;
+            return this;
+        }
+
+        public Member.MemberBuilder nickname(final String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
+
+        public Member.MemberBuilder email(final String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Member.MemberBuilder avatar(final String avatar) {
+            this.avatar = avatar;
+            return this;
+        }
+
+        public Member.MemberBuilder providerType(ProviderType providerType) {
+            this.providerType = providerType;
+            return this;
+        }
+
+        public Member build() {
+            return new Member(this.oauthPermission, this.nickname, this.email, this.avatar,
+                this.providerType);
+        }
     }
 }

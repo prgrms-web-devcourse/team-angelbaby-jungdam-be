@@ -30,6 +30,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest)
         throws OAuth2AuthenticationException {
+
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
 
         try {
@@ -43,7 +44,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
-    // 추가로 이메일 검증 필요
     private OAuth2User process(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
         ProviderType providerType = ProviderType.valueOf(
             oAuth2UserRequest.getClientRegistration().getRegistrationId().toUpperCase()
@@ -55,7 +55,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         );
 
         Member member = memberRepository.findByOauthPermission(
-            oAuth2MemberInfo.getOauthPermission());
+            oAuth2MemberInfo.getOauthPermission()
+        );
 
         if (!Objects.isNull(member)) {
             if (providerType != member.getProviderType()) {
@@ -70,13 +71,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private Member createUser(OAuth2MemberInfo userInfo, ProviderType providerType) {
-        Member member = new Member(
-            userInfo.getOauthPermission(),
-            userInfo.getNickname(),
-            userInfo.getEmail(),
-            userInfo.getAvatar(),
-            providerType
-        );
+        Member member = Member.builder()
+            .oauthPermission(userInfo.getOauthPermission())
+            .nickname(userInfo.getNickname())
+            .email(userInfo.getEmail())
+            .avatar(userInfo.getAvatar())
+            .build();
 
         return memberRepository.saveAndFlush(member);
     }

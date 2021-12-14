@@ -40,10 +40,19 @@ public class Invitation extends BaseEntity {
     private Member targetMember;
 
     protected Invitation() {
+    }
 
+    public Invitation(Member targetMember, Member subjectMember) {
+        this.targetMember = targetMember;
+        this.subjectMember = subjectMember;
+        this.status = Status.PENDING;
     }
 
     public void register(Album album) {
         this.album = album;
+    }
+
+    public Long getId() {
+        return this.id;
     }
 }

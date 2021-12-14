@@ -10,7 +10,6 @@ public class Nickname {
     private String nickname;
 
     protected Nickname() {
-
     }
 
     public Nickname(String nickname) {
@@ -19,5 +18,9 @@ public class Nickname {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public boolean isEquals(String nickname) {
+        return this.nickname.equals(nickname);
     }
 }

@@ -15,7 +15,6 @@ public class Avatar {
     private String avatar;
 
     protected Avatar() {
-
     }
 
     public Avatar(String avatar) {
@@ -31,5 +30,9 @@ public class Avatar {
 
     public String getAvatar() {
         return avatar;
+    }
+
+    public boolean isEquals(String avatar) {
+        return this.avatar.equals(avatar);
     }
 }

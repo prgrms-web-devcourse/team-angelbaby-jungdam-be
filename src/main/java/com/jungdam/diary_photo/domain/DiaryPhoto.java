@@ -29,7 +29,6 @@ public class DiaryPhoto extends BaseEntity {
     private Diary diary;
 
     protected DiaryPhoto() {
-
     }
 
     public DiaryPhoto(Image image) {
@@ -42,5 +41,9 @@ public class DiaryPhoto extends BaseEntity {
 
     public Image getImage() {
         return image;
+    }
+
+    public String getImageValue() {
+        return image.getImage();
     }
 }

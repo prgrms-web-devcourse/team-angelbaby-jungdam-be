@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+// TODO : 리펙토링 진행
 public class AuthPrincipal implements OAuth2User, UserDetails, OidcUser {
 
     private final Long id;
@@ -50,7 +51,7 @@ public class AuthPrincipal implements OAuth2User, UserDetails, OidcUser {
     public static AuthPrincipal create(Member member) {
         return AuthPrincipal.builder()
             .id(member.getId())
-            .email(member.getEmail())
+            .email(member.getEmail().getEmail())
             .oauthPermission(member.getOauthPermission())
             .providerType(member.getProviderType())
             .build();

@@ -23,10 +23,9 @@ public class ImageController {
         this.s3Uploader = s3Uploader;
     }
 
-    // TODO: Security
     @PostMapping("/images")
     public ResponseEntity<ResponseDto<UploadResponse>> upload(
-        @RequestParam("images") MultipartFile multipartFile)
+        @RequestParam("image") MultipartFile multipartFile)
         throws IOException {
         UploadBundle bundle = new UploadBundle(multipartFile, "temp");
         UploadResponse response = s3Uploader.upload(bundle);

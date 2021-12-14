@@ -7,13 +7,8 @@ import javax.persistence.Embeddable;
 public class Bookmark {
 
     @Column(name = "diary_bookmark")
-    private Boolean bookmark;
+    private Boolean bookmark = false;
 
-    protected Bookmark() {
-
-    }
-
-    public Bookmark(Boolean bookmark) {
-        this.bookmark = bookmark;
+    public Bookmark() {
     }
 }

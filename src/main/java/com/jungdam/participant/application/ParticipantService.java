@@ -4,7 +4,9 @@ import com.jungdam.album.domain.Album;
 import com.jungdam.error.ErrorMessage;
 import com.jungdam.error.exception.NotExistException;
 import com.jungdam.member.domain.Member;
+import com.jungdam.participant.domain.Participant;
 import com.jungdam.participant.infrastructure.ParticipantRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,10 @@ public class ParticipantService {
     }
 
     @Transactional(readOnly = true)
+    public List<Participant> findAllByAlbum(Album album) {
+        return participantRepository.findAllByAlbum(album);
+    }
+  
     public void checkNotExists(Album album, Member member) {
         if (!existsByAlbumAndMember(album, member)) {
             throw new NotExistException(ErrorMessage.NOT_EXIST_PARTICIPANT);

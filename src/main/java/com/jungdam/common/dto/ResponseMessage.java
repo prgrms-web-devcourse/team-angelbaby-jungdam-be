@@ -24,6 +24,7 @@ public enum ResponseMessage {
     ALBUM_UPDATE_SUCCESS(HttpStatus.OK, "앨범 수정 성공"),
     COMMENT_DELETE_SUCCESS(HttpStatus.OK, "댓글 삭제 성공"),
     DIARY_DELETE_SUCCESS(HttpStatus.OK, "일기 삭제 성공"),
+    DIARY_RECORDED_AT_CHECK_SUCCESS(HttpStatus.OK, "일기 생성날짜 검사 성공"),
 
     ;
 

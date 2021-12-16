@@ -4,9 +4,13 @@ import com.jungdam.album.application.AlbumService;
 import com.jungdam.album.converter.AlbumConverter;
 import com.jungdam.album.domain.Album;
 import com.jungdam.album.dto.bundle.CreateAlbumBundle;
+import com.jungdam.album.dto.bundle.DeleteAlbumBundle;
 import com.jungdam.album.dto.bundle.ReadOneAlbumBundle;
+import com.jungdam.album.dto.bundle.UpdateAlbumBundle;
 import com.jungdam.album.dto.response.CreateAlbumResponse;
+import com.jungdam.album.dto.response.DeleteAlbumResponse;
 import com.jungdam.album.dto.response.ReadOneAlbumResponse;
+import com.jungdam.album.dto.response.UpdateAlbumResponse;
 import com.jungdam.member.application.MemberService;
 import com.jungdam.member.domain.Member;
 import com.jungdam.participant.application.ParticipantService;
@@ -48,5 +52,33 @@ public class AlbumFacade {
         participantService.checkNotExists(album, member);
 
         return albumConverter.toReadOneAlbumResponse(album);
+    }
+
+    @Transactional
+    public DeleteAlbumResponse delete(DeleteAlbumBundle bundle) {
+        Album album = albumService.findById(bundle.getAlbumId());
+        Member member = memberService.findById(bundle.getMemberId());
+
+        participantService.checkMemberIsOwnerRole(album, member);
+
+        albumService.delete(album);
+
+        return albumConverter.toDeleteAlbumResponse(album, member);
+    }
+
+    @Transactional
+    public UpdateAlbumResponse update(UpdateAlbumBundle bundle) {
+        Album album = albumService.findById(bundle.getAlbumId());
+        Member member = memberService.findById(bundle.getMemberId());
+
+        participantService.checkMemberIsOwnerRole(album, member);
+
+        album.update(
+            bundle.getTitle(),
+            bundle.getFamilyMotto(),
+            bundle.getThumbnail()
+        );
+
+        return albumConverter.toUpdateAlbumResponse(album);
     }
 }

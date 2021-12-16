@@ -7,6 +7,7 @@ import com.jungdam.member.domain.vo.Email;
 import com.jungdam.member.domain.vo.Nickname;
 import com.jungdam.member.domain.vo.ProviderType;
 import com.jungdam.member.dto.response.ReadMemberResponse;
+import com.jungdam.member.dto.response.SearchMemberResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,7 +21,15 @@ public class MemberConverter {
             .role(member.getRoleValue())
             .build();
     }
-
+  
+    public SearchMemberResponse toSearchMemberResponse(Member member) {
+        return SearchMemberResponse.builder()
+            .email(member.getEmailValue())
+            .nickname(member.getNicknameValue())
+            .avatar(member.getAvatarValue())
+            .build();
+    }
+  
     public Member toMember(OAuth2MemberInfo userInfo, ProviderType providerType) {
         return Member.builder()
             .oauthPermission(userInfo.getOauthPermission())

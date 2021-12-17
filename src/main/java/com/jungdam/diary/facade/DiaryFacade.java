@@ -19,7 +19,6 @@ import com.jungdam.diary.dto.response.ReadDiaryResponse;
 import com.jungdam.diary.dto.response.UpdateDiaryResponse;
 import com.jungdam.member.application.MemberService;
 import com.jungdam.member.domain.Member;
-import com.jungdam.participant.application.ParticipantService;
 import com.jungdam.participant.domain.Participant;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +29,14 @@ public class DiaryFacade {
     private final MemberService memberService;
     private final AlbumService albumService;
     private final DiaryService diaryService;
-    private final ParticipantService participantService;
     private final DiaryConverter diaryConverter;
 
     public DiaryFacade(MemberService memberService,
         AlbumService albumService, DiaryService diaryService,
-        ParticipantService participantService, DiaryConverter diaryConverter) {
+        DiaryConverter diaryConverter) {
         this.memberService = memberService;
         this.albumService = albumService;
         this.diaryService = diaryService;
-        this.participantService = participantService;
         this.diaryConverter = diaryConverter;
     }
 
@@ -62,11 +59,9 @@ public class DiaryFacade {
         Album album = albumService.findById(bundle.getAlbumId());
         Member member = memberService.findById(bundle.getMemberId());
 
-        Participant participant = album.belong(member);
+        album.belong(member);
 
-        // TODO
-        Diary diary = diaryService.findById(bundle.getDiaryId());
-
+        Diary diary = album.findDiary(bundle.getDiaryId());
         return diaryConverter.toReadDiaryResponse(diary);
     }
 
@@ -75,10 +70,9 @@ public class DiaryFacade {
         Album album = albumService.findById(bundle.getAlbumId());
         Member member = memberService.findById(bundle.getMemberId());
 
-        Participant participant = album.belong(member);
+        album.belong(member);
 
-        // TODO
-        Diary diary = diaryService.findById(bundle.getDiaryId());
+        Diary diary = album.findDiary(bundle.getDiaryId());
         diary.mark();
 
         return diaryConverter.toCheckBookmarkResponse(diary);

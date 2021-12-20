@@ -7,11 +7,9 @@ import com.jungdam.diary.domain.vo.Bookmark;
 import com.jungdam.diary.domain.vo.Comments;
 import com.jungdam.diary.domain.vo.Content;
 import com.jungdam.diary.domain.vo.DiaryPhotos;
-import com.jungdam.diary.domain.vo.Emojis;
 import com.jungdam.diary.domain.vo.RecordedAt;
 import com.jungdam.diary.domain.vo.Title;
 import com.jungdam.diary_photo.domain.DiaryPhoto;
-import com.jungdam.emoji.domain.Emoji;
 import com.jungdam.participant.domain.Participant;
 import java.time.LocalDate;
 import java.util.List;
@@ -55,9 +53,6 @@ public class Diary extends BaseEntity {
 
     @Embedded
     private DiaryPhotos diaryPhotos;
-
-    @Embedded
-    private Emojis emojis;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "participant_id")
@@ -145,11 +140,6 @@ public class Diary extends BaseEntity {
         comment.register(this);
     }
 
-    public void addEmoji(Emoji emoji) {
-        emojis.add(emoji);
-        emoji.register(this);
-    }
-
     public void mark() {
         bookmark.mark();
     }
@@ -166,11 +156,6 @@ public class Diary extends BaseEntity {
         return this.recordedAt.equals(recordedAt) && this.participant.equals(participant);
     }
 
-    public void updateComment(Long id, Participant participant,
-        com.jungdam.comment.domain.vo.Content content) {
-        comments.update(id, participant, content);
-    }
-
     public void update(Title title, Content content, List<DiaryPhoto> diaryPhotos) {
         this.title = title;
         this.content = content;
@@ -178,13 +163,12 @@ public class Diary extends BaseEntity {
         addDiaryPhotos(diaryPhotos);
     }
 
-    public boolean isEquals(Long id) {
-        return this.id.equals(id);
+    public Comment findComment(Long id, Participant participant) {
+        return comments.find(id, participant);
     }
 
-    public boolean register(Participant participant,
-        com.jungdam.emoji.domain.vo.Content content) {
-        return emojis.register(participant, this, content);
+    public boolean isEquals(Long id) {
+        return this.id.equals(id);
     }
 
     public Long getId() {

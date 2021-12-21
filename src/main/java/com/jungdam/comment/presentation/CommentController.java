@@ -16,7 +16,6 @@ import com.jungdam.common.dto.ResponseMessage;
 import com.jungdam.common.utils.SecurityUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.util.Objects;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/albums/{albumId}/diaries/{diaryId}/comments")
 public class CommentController {
-
-    private final static int DEFAULT_PAGE_SIZE = 10;
 
     private final CommentFacade commentFacade;
 
@@ -59,36 +56,13 @@ public class CommentController {
         return ResponseDto.of(ResponseMessage.COMMENT_CREATE_SUCCESS, response);
     }
 
-    @ApiOperation("댓글 삭제")
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<ResponseDto<DeleteCommentResponse>> delete(@PathVariable Long albumId,
-        @PathVariable Long diaryId, @PathVariable Long commentId) {
-        Long memberId = SecurityUtils.getCurrentUsername();
-
-        DeleteCommentBundle bundle = DeleteCommentBundle.builder()
-            .memberId(memberId)
-            .albumId(albumId)
-            .diaryId(diaryId)
-            .commentId(commentId)
-            .albumId(albumId)
-            .build();
-
-        DeleteCommentResponse response = commentFacade.delete(bundle);
-
-        return ResponseDto.of(ResponseMessage.COMMENT_DELETE_SUCCESS, response);
-    }
-
     @ApiOperation("댓글 조회")
     @GetMapping
-    public ResponseEntity<ResponseDto<ReadCommentAllResponse>> read(@PathVariable Long albumId,
+    public ResponseEntity<ResponseDto<ReadCommentAllResponse>> getAll(@PathVariable Long albumId,
         @PathVariable Long diaryId,
         @RequestParam(value = "cursorId", required = false) Long cursorId,
         @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         Long memberId = SecurityUtils.getCurrentUsername();
-
-        if (Objects.isNull(pageSize)) {
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
 
         ReadCommentBundle bundle = ReadCommentBundle.builder()
             .memberId(memberId)
@@ -98,7 +72,7 @@ public class CommentController {
             .pageSize(pageSize)
             .build();
 
-        ReadCommentAllResponse response = commentFacade.find(bundle);
+        ReadCommentAllResponse response = commentFacade.findAll(bundle);
 
         return ResponseDto.of(ResponseMessage.COMMENT_READ_SUCCESS, response);
     }
@@ -121,5 +95,24 @@ public class CommentController {
         UpdateCommentResponse response = commentFacade.update(bundle);
 
         return ResponseDto.of(ResponseMessage.COMMENT_UPDATE_SUCCESS, response);
+    }
+
+    @ApiOperation("댓글 삭제")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<ResponseDto<DeleteCommentResponse>> delete(@PathVariable Long albumId,
+        @PathVariable Long diaryId, @PathVariable Long commentId) {
+        Long memberId = SecurityUtils.getCurrentUsername();
+
+        DeleteCommentBundle bundle = DeleteCommentBundle.builder()
+            .memberId(memberId)
+            .albumId(albumId)
+            .diaryId(diaryId)
+            .commentId(commentId)
+            .albumId(albumId)
+            .build();
+
+        DeleteCommentResponse response = commentFacade.delete(bundle);
+
+        return ResponseDto.of(ResponseMessage.COMMENT_DELETE_SUCCESS, response);
     }
 }

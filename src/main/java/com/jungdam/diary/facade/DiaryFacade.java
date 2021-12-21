@@ -2,7 +2,7 @@ package com.jungdam.diary.facade;
 
 import com.jungdam.album.application.AlbumService;
 import com.jungdam.album.domain.Album;
-import com.jungdam.common.utils.PageUtil;
+import com.jungdam.common.utils.PageUtils;
 import com.jungdam.diary.application.DiaryService;
 import com.jungdam.diary.converter.DiaryConverter;
 import com.jungdam.diary.domain.Diary;
@@ -132,13 +132,13 @@ public class DiaryFacade {
     }
 
     @Transactional
-    public ReadAllFeedDiaryResponse findAll(ReadAllDiaryBundle bundle) {
+    public ReadAllFeedDiaryResponse findAllFeed(ReadAllDiaryBundle bundle) {
         Album album = albumService.findById(bundle.getAlbumId());
         Member member = memberService.findById(bundle.getMemberId());
 
         album.belong(member);
 
-        Pageable page = PageUtil.of(bundle.getPageSize());
+        Pageable page = PageUtils.of(bundle.getPageSize());
 
         return diaryService.findAllFeed(album, bundle.getCursorId(), page);
     }
@@ -148,9 +148,10 @@ public class DiaryFacade {
     public ReadAllStoryBookResponse findAllStoryBook(ReadAllStoryBookBundle bundle) {
         Album album = albumService.findById(bundle.getAlbumId());
 
+        // Participants에 findById 만들어두었습니당~
         Participant participant = participantService.findById(bundle.getParticipantId());
 
-        Pageable page = PageUtil.of(bundle.getPageSize());
+        Pageable page = PageUtils.of(bundle.getPageSize());
 
         return diaryService.findAllStoryBook(album, participant, bundle.getCursorId(), page);
     }
@@ -160,6 +161,7 @@ public class DiaryFacade {
         Member member = memberService.findById(bundle.getMemberId());
         Album album = albumService.findById(bundle.getAlbumId());
 
+        // album.belong() 메서드가 있습니당!
         participantService.checkExists(album, member);
 
         List<Participant> participants = participantService.findAllByAlbum(album);

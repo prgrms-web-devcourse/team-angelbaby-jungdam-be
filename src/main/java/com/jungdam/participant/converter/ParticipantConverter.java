@@ -1,10 +1,12 @@
 package com.jungdam.participant.converter;
 
 import com.jungdam.album.domain.Album;
+import com.jungdam.member.domain.Member;
 import com.jungdam.participant.domain.Participant;
 import com.jungdam.participant.dto.response.CheckParticipantResponse;
 import com.jungdam.participant.dto.response.ReadAllParticipant;
 import com.jungdam.participant.dto.response.ReadAllParticipantResponse;
+import com.jungdam.participant.dto.response.ReadParticipantRoleResponse;
 import com.jungdam.participant.dto.response.UpdateNicknameParticipantResponse;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,17 +17,19 @@ public class ParticipantConverter {
 
     public ReadAllParticipantResponse toReadAllParticipantResponse(List<Participant> participants) {
         List<ReadAllParticipant> readAllParticipants = participants.stream()
-            .map(participant -> toReadAllParticipant(participant))
+            .map(this::toReadAllParticipant)
             .collect(Collectors.toList());
 
         return new ReadAllParticipantResponse(readAllParticipants);
     }
 
     private ReadAllParticipant toReadAllParticipant(Participant participant) {
+        Member member = participant.getMember();
+
         return ReadAllParticipant.builder()
-            .email(participant.getMember().getEmailValue())
+            .email(member.getEmailValue())
             .nickname(participant.getNicknameValue())
-            .avatar(participant.getMember().getAvatarValue())
+            .avatar(member.getAvatarValue())
             .role(participant.getRoleValue())
             .build();
     }
@@ -38,5 +42,9 @@ public class ParticipantConverter {
         Participant participant) {
         return new UpdateNicknameParticipantResponse(participant.getId(),
             participant.getNicknameValue());
+    }
+
+    public ReadParticipantRoleResponse toReadParticipantRoleResponse(Participant participant) {
+        return new ReadParticipantRoleResponse(participant.getId(), participant.getRoleValue());
     }
 }

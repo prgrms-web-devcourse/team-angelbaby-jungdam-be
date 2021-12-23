@@ -76,9 +76,11 @@ public class DiaryService {
     private List<Diary> findByAlbumAndBookmark(Album album, Bookmark bookmark, Long cursorId,
         Pageable page) {
         if (Objects.isNull(cursorId)) {
-            return diaryRepository.findAllByAlbumAndBookmarkOrderByIdDesc(album, bookmark, page);
+            return diaryRepository.findAllByAlbumAndBookmarkOrderByRecordedAtDesc(album, bookmark,
+                page);
         }
-        return diaryRepository.findAllByAlbumAndBookmarkAndIdLessThanOrderByIdDesc(album, bookmark,
+        return diaryRepository.findAllByAlbumAndBookmarkAndIdLessThanOrderByRecordedAtDesc(album,
+            bookmark,
             cursorId, page);
     }
 
@@ -124,12 +126,13 @@ public class DiaryService {
     }
 
     private List<Diary> findAllByAlbumOrderByRecordedAtDesc(Album album, Pageable pageable) {
-        return diaryRepository.findAllByAlbumOrderByRecordedAtDesc(album, pageable);
+        return diaryRepository.findAllByAlbumOrderByRecordedAtDescCreatedAtDesc(album, pageable);
     }
 
     private List<Diary> findAllByAlbumAndRecordedAtLessThanOrderByRecordedAtDesc(Album album,
         RecordedAt recordedAt, Pageable pageable) {
-        return diaryRepository.findAllByAlbumAndRecordedAtLessThanOrderByRecordedAtDesc(album,
+        return diaryRepository.findAllByAlbumAndRecordedAtLessThanOrderByRecordedAtDescCreatedAtDesc(
+            album,
             recordedAt, pageable);
     }
 
@@ -175,7 +178,7 @@ public class DiaryService {
         Pageable page) {
         return participants.stream()
             .map(participant -> {
-                List<Diary> diaries = diaryRepository.findAllByAlbumAndParticipantOrderByIdDesc(
+                List<Diary> diaries = diaryRepository.findAllByAlbumAndParticipantOrderByRecordedAtDesc(
                     album, participant,
                     page);
                 return diaryConverter.toReadParticipantStoryBookResponse(participant, diaries);

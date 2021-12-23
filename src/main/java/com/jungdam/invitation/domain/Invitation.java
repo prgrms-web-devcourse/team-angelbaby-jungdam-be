@@ -60,12 +60,20 @@ public class Invitation extends BaseEntity {
         return Status.ACCEPT.equals(this.status);
     }
 
+    public boolean isEquals(Member member) {
+        return this.targetMember.equals(member);
+    }
+
     public Long getId() {
         return id;
     }
 
     public Status getStatus() {
         return status;
+    }
+
+    public Long getAlbumId() {
+        return album.getId();
     }
 
     public Album getAlbum() {

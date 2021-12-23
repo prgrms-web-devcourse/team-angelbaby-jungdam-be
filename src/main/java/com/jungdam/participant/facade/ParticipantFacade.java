@@ -9,9 +9,11 @@ import com.jungdam.participant.converter.ParticipantConverter;
 import com.jungdam.participant.domain.Participant;
 import com.jungdam.participant.dto.bundle.CheckParticipantBundle;
 import com.jungdam.participant.dto.bundle.ReadAllParticipantBundle;
+import com.jungdam.participant.dto.bundle.ReadParticipantRoleBundle;
 import com.jungdam.participant.dto.bundle.UpdateNicknameParticipantBundle;
 import com.jungdam.participant.dto.response.CheckParticipantResponse;
 import com.jungdam.participant.dto.response.ReadAllParticipantResponse;
+import com.jungdam.participant.dto.response.ReadParticipantRoleResponse;
 import com.jungdam.participant.dto.response.UpdateNicknameParticipantResponse;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -52,7 +54,7 @@ public class ParticipantFacade {
         Album album = albumService.findById(bundle.getAlbumId());
         Member member = memberService.findById(bundle.getMemberId());
 
-        boolean check = album.findParticipant(member);
+        boolean check = album.contains(member);
 
         return participantConverter.toCheckParticipantResponse(album, check);
     }
@@ -67,5 +69,15 @@ public class ParticipantFacade {
         participant.updateNickname(bundle.getNickname());
 
         return participantConverter.toUpdateNicknameParticipantResponse(participant);
+    }
+
+    @Transactional(readOnly = true)
+    public ReadParticipantRoleResponse findRole(ReadParticipantRoleBundle bundle) {
+        Member member = memberService.findById(bundle.getMemberId());
+        Album album = albumService.findById(bundle.getAlbumId());
+
+        Participant participant = participantService.findByMemberAndAlbum(member, album);
+
+        return participantConverter.toReadParticipantRoleResponse(participant);
     }
 }

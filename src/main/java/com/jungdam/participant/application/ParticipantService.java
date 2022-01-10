@@ -1,7 +1,7 @@
 package com.jungdam.participant.application;
 
 import com.jungdam.album.domain.Album;
-import com.jungdam.error.ErrorMessage;
+import com.jungdam.error.dto.ErrorMessage;
 import com.jungdam.error.exception.common.NoPermissionException;
 import com.jungdam.error.exception.common.NotExistException;
 import com.jungdam.member.domain.Member;
@@ -28,12 +28,7 @@ public class ParticipantService {
         participant.register(album);
         participantRepository.save(participant);
     }
-
-    @Transactional(readOnly = true)
-    public boolean notExistsByAlbumAndMember(Album album, Member member) {
-        return !participantRepository.existsByAlbumAndMember(album, member);
-    }
-
+    
     @Transactional(readOnly = true)
     public List<Participant> findAllByAlbum(Album album) {
         return participantRepository.findAllByAlbum(album);

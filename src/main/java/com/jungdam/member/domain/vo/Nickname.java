@@ -1,6 +1,6 @@
 package com.jungdam.member.domain.vo;
 
-import com.jungdam.error.ErrorMessage;
+import com.jungdam.error.dto.ErrorMessage;
 import com.jungdam.error.exception.common.InvalidArgumentException;
 import java.util.regex.Pattern;
 import javax.persistence.Column;
@@ -25,7 +25,7 @@ public class Nickname {
         this.nickname = nickname;
     }
 
-    public void validate(String nickname) {
+    private void validate(String nickname) {
         if (!StringUtils.hasText(nickname) || !Pattern.matches(NICKNAME_VALIDATOR, nickname)) {
             throw new InvalidArgumentException(ErrorMessage.INVALID_MEMBER_NICKNAME);
         }

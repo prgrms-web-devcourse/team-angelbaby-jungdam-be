@@ -4,11 +4,13 @@ package com.jungdam.auth.application;
 import com.jungdam.auth.domain.AuthPrincipal;
 import com.jungdam.auth.oauth2.OAuth2MemberInfo;
 import com.jungdam.auth.oauth2.OAuth2MemberInfoFactory;
-import com.jungdam.error.ErrorMessage;
+import com.jungdam.error.dto.ErrorMessage;
 import com.jungdam.error.exception.auth.FailAuthenticationException;
 import com.jungdam.error.exception.auth.InternalAuthenticationException;
+import com.jungdam.error.exception.common.DuplicationException;
 import com.jungdam.member.converter.MemberConverter;
 import com.jungdam.member.domain.Member;
+import com.jungdam.member.domain.vo.Email;
 import com.jungdam.member.domain.vo.ProviderType;
 import com.jungdam.member.infrastructure.MemberRepository;
 import java.util.Objects;
@@ -21,12 +23,12 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
     private final MemberConverter memberConverter;
 
-    public CustomOAuth2UserService(MemberRepository memberRepository,
+    public OAuth2UserService(MemberRepository memberRepository,
         MemberConverter memberConverter) {
         this.memberRepository = memberRepository;
         this.memberConverter = memberConverter;
@@ -60,9 +62,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         );
 
         if (Objects.isNull(member)) {
+            Email email = new Email(oAuth2MemberInfo.getEmail());
+            isExistsEmail(email);
             member = create(oAuth2MemberInfo, providerType);
         }
         return AuthPrincipal.create(member, oAuth2User.getAttributes());
+    }
+
+    private void isExistsEmail(Email email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new DuplicationException(ErrorMessage.ALREADY_EXIST_MEMBER_EMAIL);
+        }
     }
 
     private ProviderType bringProviderType(ClientRegistration clientRegistration) {
